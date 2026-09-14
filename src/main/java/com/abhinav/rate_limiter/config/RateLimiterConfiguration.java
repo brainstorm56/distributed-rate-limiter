@@ -16,7 +16,7 @@ public class RateLimiterConfiguration {
 
         rateLimiter.configureClient(
                 "client-b",
-                new RateLimitConfig(3, 0.4)
+                new RateLimitConfig(3, 0.1)
         );
     }
 }

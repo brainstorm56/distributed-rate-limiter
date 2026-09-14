@@ -44,7 +44,11 @@ public class TokenBucket {
             currentTokens--;
             return new RateLimitResult(true, currentTokens, capacity, 0.0 );
         }
-        return new RateLimitResult(false, currentTokens, capacity, 1/refillRate );
+        double retryAfter = Math.max(
+                0,
+                1 / refillRate - timeElapsedFromLastRefill
+        );
+        return new RateLimitResult(false, currentTokens, capacity, retryAfter );
     }
 
     public double getRefillRate() {
