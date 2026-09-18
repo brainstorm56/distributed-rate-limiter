@@ -18,8 +18,13 @@ public class ProductController {
         this.rateLimiter = rateLimiter;
     }
     @GetMapping("/products")
-    public ResponseEntity<String> getProduct(@RequestHeader("X-API-KEY") String apiKey)
+    public ResponseEntity<String> getProduct(@RequestHeader(value = "X-API-KEY", required = false) String apiKey)
     {
+        if(apiKey == null || apiKey.isBlank())
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("API key is required");
+        }
         RateLimitResult result = rateLimiter.allowRequest(apiKey);
         if(result == null)
         {
