@@ -2,32 +2,43 @@ package com.abhinav.rate_limiter;
 
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RateLimiter {
 
-    private ConcurrentHashMap<String, ClientRateLimit> clients;
+    private final RedisService redisService;
 
-    public RateLimiter()
+    public RateLimiter(RedisService redisService)
     {
-        this.clients = new ConcurrentHashMap<>();
+        this.redisService = redisService;
     }
 
     public boolean configureClient(String clientId, RateLimitConfig config)
     {
-        clients.put(clientId, new ClientRateLimit(config));
+        redisService.saveClientConfig(clientId, config);
         return true;
     }
 
     public RateLimitResult allowRequest(String clientId)
     {
-        ClientRateLimit clientRateLimit = clients.get(clientId);
-        if(clientRateLimit == null)
-        {
+        List<Long> result = redisService.tryConsume(
+                clientId
+        );
+        if (result.get(0) == -1) {
             return null;
         }
-        return clientRateLimit.allowRequest();
+        boolean allowed = result.get(0) == 1;
+        int remainingTokens = result.get(1).intValue();
+        int capacity = result.get(2).intValue();
+        double retryAfter = result.get(3);
+
+        return new RateLimitResult(
+                allowed,
+                remainingTokens,
+                capacity,
+                retryAfter
+        );
     }
 }
