@@ -2,6 +2,7 @@ package com.abhinav.rate_limiter.Controllers;
 
 import com.abhinav.rate_limiter.RateLimitResult;
 import com.abhinav.rate_limiter.RateLimiter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class ProductController {
     private final RateLimiter rateLimiter;
+    @Value("${INSTANCE_ID:unknown}")
+    private String instanceId;
     public ProductController(RateLimiter rateLimiter)
     {
         this.rateLimiter = rateLimiter;
@@ -42,6 +45,6 @@ public class ProductController {
                .ok()
                .header("X-RateLimit-Limit", String.valueOf(result.getCapacity()))
                .header("X-RateLimit-Remaining", String.valueOf(result.getRemainingTokens()))
-               .body("product");
+               .body("product from " + instanceId);
     }
 }

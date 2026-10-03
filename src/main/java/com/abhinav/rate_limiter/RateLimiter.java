@@ -9,10 +9,12 @@ import java.util.Map;
 public class RateLimiter {
 
     private final RedisService redisService;
+    private final RateLimiterMetrics metrics;
 
-    public RateLimiter(RedisService redisService)
+    public RateLimiter(RedisService redisService, RateLimiterMetrics metrics)
     {
         this.redisService = redisService;
+        this.metrics = metrics;
     }
 
     public boolean configureClient(String clientId, RateLimitConfig config)
@@ -30,6 +32,12 @@ public class RateLimiter {
             return null;
         }
         boolean allowed = result.get(0) == 1;
+        if(allowed){
+            metrics.recordAllowed();
+        }
+        else {
+            metrics.recordRejected();
+        }
         int remainingTokens = result.get(1).intValue();
         int capacity = result.get(2).intValue();
         double retryAfter = result.get(3);
