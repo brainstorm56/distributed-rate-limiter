@@ -2,7 +2,7 @@
 local key = KEYS[1]
 local now = tonumber(ARGV[1])
 
-if not redis.call('EXISTS', key) then
+if redis.call('EXISTS', key) == 0 then
     return {-1, 0, 0, 0}
 end
 

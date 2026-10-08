@@ -16,6 +16,7 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       INSTANCE_ID: app-1
+      RATE_LIMITER_ADMIN_API_KEY: ${RATE_LIMITER_ADMIN_API_KEY}
     depends_on:
       - redis
 
@@ -29,6 +30,7 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       INSTANCE_ID: app-2
+      RATE_LIMITER_ADMIN_API_KEY: ${RATE_LIMITER_ADMIN_API_KEY}
     depends_on:
       - redis
 

@@ -25,28 +25,35 @@ public class RateLimiter {
 
     public RateLimitResult allowRequest(String clientId)
     {
-        List<Long> result = redisService.tryConsume(
-                clientId
-        );
-        if (result.get(0) == -1) {
-            return null;
-        }
-        boolean allowed = result.get(0) == 1;
-        if(allowed){
-            metrics.recordAllowed();
-        }
-        else {
-            metrics.recordRejected();
-        }
-        int remainingTokens = result.get(1).intValue();
-        int capacity = result.get(2).intValue();
-        double retryAfter = result.get(3);
+        try {
+            List<Long> result = redisService.tryConsume(
+                    clientId
+            );
+            if (result.get(0) == -1) {
+                return null;
+            }
+            boolean allowed = result.get(0) == 1;
+            if(allowed){
+                metrics.recordAllowed();
+            }
+            else {
+                metrics.recordRejected();
+            }
+            int remainingTokens = result.get(1).intValue();
+            int capacity = result.get(2).intValue();
+            double retryAfter = result.get(3);
 
-        return new RateLimitResult(
-                allowed,
-                remainingTokens,
-                capacity,
-                retryAfter
-        );
+            return new RateLimitResult(
+                    allowed,
+                    remainingTokens,
+                    capacity,
+                    retryAfter
+            );
+        }
+        catch (Exception e) {
+            // Redis is unavailable
+            throw new RateLimiterUnavailableException(
+                    "Rate limiter is temporarily unavailable", e);
+        }
     }
 }
