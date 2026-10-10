@@ -74,7 +74,7 @@ public class RedisService {
         redisTemplate.opsForHash().put(
                 key,
                 "lastRefillTime",
-                String.valueOf(Instant.now().getEpochSecond())
+                String.valueOf(Instant.now().toEpochMilli())
         );
     }
     public Map<Object, Object> getClientState(String clientId) {
@@ -87,7 +87,7 @@ public class RedisService {
 
         String key = "rate-limit:" + clientId;
 
-        long now = Instant.now().getEpochSecond();
+        long now = Instant.now().toEpochMilli();
 
         List<Long> result = redisTemplate.execute(
                 tokenBucketScript,

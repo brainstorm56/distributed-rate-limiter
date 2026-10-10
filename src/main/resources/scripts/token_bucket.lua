@@ -16,7 +16,7 @@ if not now or not capacity or not refillRate
     return redis.error_reply("Invalid bucket state")
 end
 
-local elapsed = now - lastRefillTime
+local elapsed = (now - lastRefillTime) / 1000.0
 
 local potentialTokens = math.floor(elapsed * refillRate)
 
@@ -30,7 +30,7 @@ if currentTokens == capacity then
     lastRefillTime = now
 else
     lastRefillTime = lastRefillTime
-        + (potentialTokens / refillRate)
+        + (potentialTokens / refillRate) * 1000
 end
 
 local allowed = 0

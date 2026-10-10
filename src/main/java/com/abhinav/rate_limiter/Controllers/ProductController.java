@@ -2,6 +2,7 @@ package com.abhinav.rate_limiter.Controllers;
 
 import com.abhinav.rate_limiter.RateLimitResult;
 import com.abhinav.rate_limiter.RateLimiter;
+import com.abhinav.rate_limiter.dto.ApiErrorResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,17 +22,23 @@ public class ProductController {
         this.rateLimiter = rateLimiter;
     }
     @GetMapping("/products")
-    public ResponseEntity<String> getProduct(@RequestHeader(value = "X-API-KEY", required = false) String apiKey)
+    public ResponseEntity<?> getProduct(@RequestHeader(value = "X-API-KEY", required = false) String apiKey)
     {
         if(apiKey == null || apiKey.isBlank())
         {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("API key is required");
+                    .body(new ApiErrorResponse(
+                            "API_KEY_MISSING",
+                            "API key is required"
+                    ));
         }
         RateLimitResult result = rateLimiter.allowRequest(apiKey);
         if(result == null)
         {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid API key");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponse(
+                    "INVALID_API_KEY",
+                    "Invalid API key"
+            ));
         }
         if(!result.isAllowed())
         {
@@ -39,7 +46,10 @@ public class ProductController {
                     .header("X-RateLimit-Limit", String.valueOf(result.getCapacity()))
                     .header("X-RateLimit-Remaining", String.valueOf(result.getRemainingTokens()))
                     .header("Retry-After", String.valueOf((int)Math.ceil(result.getRetryAfter())))
-                    .body("Rate limit exceeded");
+                    .body(new ApiErrorResponse(
+                            "RATE_LIMIT_EXCEEDED",
+                            "Rate limit exceeded"
+                    ));
         }
        return ResponseEntity
                .ok()

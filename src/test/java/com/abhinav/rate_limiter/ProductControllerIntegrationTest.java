@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootTest(properties = {
@@ -24,10 +25,14 @@ class ProductControllerIntegrationTest {
     @Autowired
     private RateLimiter rateLimiter;
 
+    private String testClientId;
+
     @BeforeEach
     void setup() {
+        testClientId = "integration-test-" + UUID.randomUUID();
+
         rateLimiter.configureClient(
-                "integration-test",
+                testClientId,
                 new RateLimitConfig(10, 0.01)
         );
     }
@@ -37,7 +42,7 @@ class ProductControllerIntegrationTest {
 
         mockMvc.perform(
                         get("/api/products")
-                                .header("X-API-KEY", "integration-test")
+                                .header("X-API-KEY", testClientId)
                 )
                 .andExpect(status().isOk());
     }
@@ -49,14 +54,14 @@ class ProductControllerIntegrationTest {
         for (int i = 0; i < 10; i++) {
             mockMvc.perform(
                     get("/api/products")
-                            .header("X-API-KEY", "integration-test")
+                            .header("X-API-KEY", testClientId)
             ).andExpect(status().isOk());
         }
 
         // 11th request should be rejected
         mockMvc.perform(
                         get("/api/products")
-                                .header("X-API-KEY", "integration-test")
+                                .header("X-API-KEY", testClientId)
                 )
                 .andExpect(status().isTooManyRequests())
                 .andExpect(result ->
